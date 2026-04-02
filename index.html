@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="/manifest.json">
+    <title>Nexus Academy - SRS高效記憶 | 多益單字卡 | 英文單字速記</title>
+    <meta name="description" content="Nexus Academy 專業 SRS高效記憶系統。結合多益單字卡與圖像聯想，助您快速掌握核心詞彙，實現英文單字速記的最佳學習體驗。立即解鎖正式版，體驗全方位高效學習！">
+    <meta property="og:title" content="Nexus Academy - 專業 SRS 高效記憶單字卡">
+    <meta property="og:description" content="SRS高效記憶 | 多益單字卡 | 英文單字速記。 Nexus Academy 讓您兩倍速吸收英文核心詞彙。">
+    <meta property="og:type" content="website">
+    <meta name="keywords" content="SRS高效記憶, 多益單字卡, 英文單字速記, 英文學習, 單字記憶法, SRS系統">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background: #0f172a; color: #f8fafc; height: 100vh; overflow: auto; }
+        .card-container { width: 92vw; max-width: 420px; height: 65vh; position: relative; margin: 20px auto; perspective: 1000px; }
+        .nexus-card { width: 100%; height: 100%; position: absolute; background: #1e293b; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155; display: flex; flex-direction: column; align-items: center; padding: 2rem; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); touch-action: none; }
+        .help-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 2rem; backdrop-filter: blur(8px); }
+        .glow-button { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen">
+    <!-- Hero Section (Landing Page) -->
+    <header class="w-full max-w-sm px-6 pt-12 pb-8 text-center">
+        <h1 class="text-4xl font-black text-white mb-4 tracking-tighter">Nexus SRS 2.0</h1>
+        <p class="text-slate-400 font-medium mb-6">把手機變成您的提分神器，SRS高效記憶系統讓單字速記翻倍！</p>
+    </header>
+
+    <!-- 支付預售入口 -->
+    <div class="w-full max-w-sm px-6 mb-8">
+        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-3xl shadow-2xl text-center text-white glow-button">
+            <h3 class="font-black text-xl mb-1 tracking-tight">SRS 2.0 隆重鉅獻</h3>
+            <p class="text-indigo-100 text-xs mb-2">原價 NT$ 2,999 | <span class="font-bold text-white text-base">早鳥優惠 NT$ 299</span></p>
+            <p class="text-indigo-200 text-[10px] mb-4">限額 50 名 | 6月正式交付</p>
+            <a href="/checkout.html" class="block w-full py-4 bg-white text-indigo-700 rounded-2xl font-black text-center shadow-lg active:scale-95 transition-transform hover:bg-indigo-50">立即搶購預售名額</a>
+        </div>
+    </div>
+
+    <!-- 學習卡片區 -->
+    <div class="w-full max-w-sm px-6 mb-4">
+        <h2 class="text-lg font-black text-slate-800 mb-4">體驗版預覽</h2>
+    </div>
+
+    <div class="card-container" id="container">
+        <div id="card" class="nexus-card" onmousedown="nexus.startDrag(event)" ontouchstart="nexus.startDrag(event)">
+            <!-- 正面 -->
+            <div id="card-content" class="w-full h-full flex flex-col items-center justify-center">
+                <h2 id="word" class="text-5xl font-black text-slate-800 mb-12 text-center tracking-tight">---</h2>
+                <div class="flex gap-8">
+                    <button onclick="nexus.speakFront(event)" class="p-7 bg-slate-100 rounded-full text-indigo-600 shadow-inner hover:bg-indigo-50 transition-colors"><i data-lucide="volume-2" class="w-10 h-10"></i></button>
+                    <button onclick="nexus.flip()" class="p-7 bg-indigo-600 rounded-full text-white shadow-lg hover:bg-indigo-700 transition-all"><i data-lucide="refresh-cw" class="w-10 h-10"></i></button>
+                </div>
+            </div>
+            <!-- 背面 -->
+            <div id="card-back" class="hidden w-full h-full flex flex-col items-center justify-start text-center">
+                <div class="w-full h-[55%] mb-6 rounded-3xl overflow-hidden shadow-inner bg-slate-100 border border-slate-200">
+                    <img id="word-img" src="" class="w-full h-full object-cover cursor-pointer transition-all" onerror="this.style.display='none'">
+                </div>
+                <h3 id="word-meaning" class="text-3xl font-bold text-indigo-700 mb-2">---</h3>
+                <p id="word-example" class="text-base text-slate-600 italic mb-2 leading-relaxed px-4">---</p>
+                <p id="word-trans" class="text-sm text-slate-400 font-medium">---</p>
+                <div class="mt-auto flex gap-6 mb-2">
+                    <button onclick="nexus.speakBack(event)" class="p-4 bg-slate-100 rounded-full text-indigo-600 border border-slate-200"><i data-lucide="volume-2" class="w-6 h-6"></i></button>
+                    <button onclick="nexus.flip()" class="p-4 bg-slate-100 rounded-full text-slate-400 border border-slate-200"><i data-lucide="refresh-cw" class="w-6 h-6"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="helpOverlay" class="help-overlay" onclick="this.style.display='none'">
+        <div class="bg-white rounded-[2.5rem] p-8 max-w-xs w-full text-slate-800 shadow-2xl" onclick="event.stopPropagation()">
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-2"><i data-lucide="info" class="text-indigo-600"></i> 使用說明</h2>
+            <ul class="space-y-4 text-sm font-medium">
+                <li class="flex gap-3"><span class="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">1</span> 點擊卡片中心或旋轉按鈕可進行翻面。</li>
+                <li class="flex gap-3"><span class="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">2</span> <b>向左上滑</b> 代表忘記 (Again)。</li>
+                <li class="flex gap-3"><span class="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">3</span> <b>向右上滑</b> 代表簡單 (Easy)。</li>
+                <li class="flex gap-3"><span class="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">4</span> 下方按鈕可進行精確 SM2 評分。</li>
+            </ul>
+            <button onclick="document.getElementById('helpOverlay').style.display='none'" class="w-full mt-8 py-3 bg-slate-900 text-white rounded-2xl font-bold">了解</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { get, set } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/+esm';
+        
+        class NexusGame {
+            constructor() {
+                this.state = { queue: [], idx: 0, flipped: false, history: {} };
+                this.drag = { active: false, startX: 0, startY: 0 };
+                this.deferredPrompt = null;
+                this.init();
+            }
+            async init() {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/sw.js');
+                }
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    document.getElementById('installBtn').classList.remove('hidden');
+                });
+                document.getElementById('installBtn').onclick = async () => {
+                    if (this.deferredPrompt) {
+                        this.deferredPrompt.prompt();
+                        const { outcome } = await this.deferredPrompt.userChoice;
+                        if (outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
+                        this.deferredPrompt = null;
+                    }
+                };
+                
+                const res = await fetch('/assets/srs-data/SRS_Pro_核心單字_1000字完整版_亂序.csv');
+                if (!res.ok) {
+                    console.error("無法載入 CSV 資料");
+                    return;
+                }
+                const text = await res.text();
+                Papa.parse(text, { header: true, complete: (results) => {
+                    this.cards = results.data.filter(r => r['單字']).map(r => ({
+                        word: r['單字'], meaning: r['中文解釋'], example: r['例句'],
+                        translation: r['例句翻譯'] || '', imageUrl: `/assets/images/${r['單字']}.jpg`
+                    })).sort(() => Math.random() - 0.5);
+                    this.render();
+                }});
+                
+                const csvInput = document.getElementById('csvInput');
+                if (csvInput) {
+                    csvInput.addEventListener('change', (e) => this.handleImport(e));
+                }
+                
+                const c = document.getElementById('card');
+                if (c) {
+                    c.addEventListener('touchstart', e => { this.drag.active = true; this.drag.startX = e.touches[0].clientX; this.drag.startY = e.touches[0].clientY; });
+                    c.addEventListener('touchmove', e => {
+                        if(!this.drag.active) return;
+                        let dx = e.touches[0].clientX - this.drag.startX;
+                        let dy = e.touches[0].clientY - this.drag.startY;
+                        c.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx/15}deg)`;
+                    });
+                    c.addEventListener('touchend', e => {
+                        if(!this.drag.active) return;
+                        let dx = e.changedTouches[0].clientX - this.drag.startX;
+                        let dy = e.changedTouches[0].clientY - this.drag.startY;
+                        if(Math.abs(dx) > 100 && dy < -50) this.process(dx > 0 ? 5 : 1);
+                        else c.style.transform = '';
+                        this.drag.active = false;
+                    });
+                }
+                lucide.createIcons();
+            }
+            showHelp() { document.getElementById('helpOverlay').style.display = 'flex'; }
+            flip() {
+                this.state.flipped = !this.state.flipped;
+                document.getElementById('card-content').classList.toggle('hidden', this.state.flipped);
+                document.getElementById('card-back').classList.toggle('hidden', !this.state.flipped);
+            }
+            speakFront(e) { if(e) e.stopPropagation(); const s = new SpeechSynthesisUtterance(this.cards[this.state.idx].word); s.lang='en-US'; window.speechSynthesis.speak(s); }
+            speakBack(e) { if(e) e.stopPropagation(); const s = new SpeechSynthesisUtterance(this.cards[this.state.idx].example); s.lang='en-US'; window.speechSynthesis.speak(s); }
+            process(q) { 
+                const c = document.getElementById('card');
+                const isRight = q > 3;
+                c.style.transition = 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                c.style.transform = `translate(${isRight?800:-800}px, -400px) rotate(${isRight?45:-45}deg)`;
+                c.style.opacity = '0';
+                this.state.history[this.cards[this.state.idx].word] = q;
+                set('history', this.state.history);
+                setTimeout(() => { 
+                    this.state.idx = (this.state.idx + 1) % this.cards.length; 
+                    this.state.flipped = false; 
+                    this.render(); 
+                }, 300);
+            }
+            handleImport(e) { Papa.parse(e.target.files[0], { header: true, complete: (res) => { this.cards = res.data; this.state.idx=0; this.render(); }}); }
+            exportData() { const a = document.createElement('a'); a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.state.history)); a.download = 'progress.json'; a.click(); }
+            render() {
+                const c = this.cards[this.state.idx];
+                document.getElementById('word').innerText = c.word;
+                document.getElementById('word-meaning').innerText = c.meaning;
+                document.getElementById('word-example').innerText = c.example;
+                document.getElementById('word-trans').innerText = c.translation;
+                document.getElementById('word-img').src = c.imageUrl;
+                
+                const prog = document.getElementById('progress-indicator');
+                if(prog) prog.innerText = `進度: ${this.state.idx + 1} / ${this.cards.length}`;
+                
+                const card = document.getElementById('card');
+                card.style.transition = 'none';
+                card.style.transform = 'scale(0.95)';
+                card.style.opacity = '0';
+                document.getElementById('card-content').classList.remove('hidden');
+                document.getElementById('card-back').classList.add('hidden');
+                setTimeout(() => {
+                    card.style.transition = 'all 0.4s ease-out';
+                    card.style.transform = 'scale(1)';
+                    card.style.opacity = '1';
+                }, 50);
+                lucide.createIcons();
+            }
+        }
+        window.nexus = new NexusGame();
+    </script>
+</body>
+</html>

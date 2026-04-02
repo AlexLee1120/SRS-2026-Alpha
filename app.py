@@ -41,7 +41,7 @@ def ecpay_return():
     if ecpay_utils.verify_mac_value(data) and data.get('RtnCode') == '1':
         buyer_email = data.get('CustomField1')
         if buyer_email:
-            email_utils.send_download_email(buyer_email)
+            print(f"DEBUG_TRIGGER_EMAIL: {buyer_email}"); email_utils.send_download_email(buyer_email)
     return '1|OK'
 
 if __name__ == '__main__':

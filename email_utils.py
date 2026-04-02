@@ -23,5 +23,6 @@ def send_download_email(buyer_email):
         resend.Emails.send(params)
         return True
     except Exception as e:
+        print(f"DEBUG_EMAIL_ERROR: {e}")
         print(f"Failed to send email: {e}")
         return False
